@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🦫 BeaverSpotter — UK Beaver Hotspot Map</title>
+
+  <!-- Leaflet (free OpenStreetMap-based maps, no API key) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== Animated splash / loader ===== -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="logo-beaver big-logo" aria-hidden="true">
+        <!-- Animated SVG beaver -->
+        <svg viewBox="0 0 120 120" class="beaver-svg">
+          <g class="bv-body">
+            <ellipse cx="60" cy="78" rx="34" ry="28" class="bv-fur" />
+            <ellipse cx="60" cy="84" rx="22" ry="18" class="bv-belly" />
+            <!-- tail -->
+            <ellipse cx="60" cy="112" rx="16" ry="9" class="bv-tail" />
+            <!-- head -->
+            <circle cx="60" cy="44" r="26" class="bv-fur" />
+            <circle cx="60" cy="50" r="16" class="bv-snout" />
+            <!-- ears -->
+            <circle cx="42" cy="24" r="8" class="bv-fur bv-ear" />
+            <circle cx="78" cy="24" r="8" class="bv-fur bv-ear" />
+            <!-- eyes -->
+            <circle cx="50" cy="40" r="4.5" class="bv-eye" />
+            <circle cx="70" cy="40" r="4.5" class="bv-eye" />
+            <circle cx="51" cy="39" r="1.6" class="bv-glint" />
+            <circle cx="71" cy="39" r="1.6" class="bv-glint" />
+            <!-- nose -->
+            <ellipse cx="60" cy="48" rx="5" ry="3.5" class="bv-nose" />
+            <!-- teeth -->
+            <rect x="56" y="53" width="8" height="11" rx="2" class="bv-teeth" />
+            <line x1="60" y1="53" x2="60" y2="64" class="bv-teeth-line" />
+          </g>
+        </svg>
+      </div>
+      <h1 class="splash-title">BeaverSpotter</h1>
+      <p class="splash-tag">Sniffing out the UK's beavers…</p>
+      <div class="loader-bar"><span></span></div>
+    </div>
+  </div>
+
+  <!-- ===== Header ===== -->
+  <header id="topbar">
+    <div class="brand">
+      <div class="logo-beaver small-logo" aria-hidden="true">
+        <svg viewBox="0 0 120 120" class="beaver-svg">
+          <g class="bv-body">
+            <ellipse cx="60" cy="78" rx="34" ry="28" class="bv-fur" />
+            <ellipse cx="60" cy="84" rx="22" ry="18" class="bv-belly" />
+            <ellipse cx="60" cy="112" rx="16" ry="9" class="bv-tail" />
+            <circle cx="60" cy="44" r="26" class="bv-fur" />
+            <circle cx="60" cy="50" r="16" class="bv-snout" />
+            <circle cx="42" cy="24" r="8" class="bv-fur bv-ear" />
+            <circle cx="78" cy="24" r="8" class="bv-fur bv-ear" />
+            <circle cx="50" cy="40" r="4.5" class="bv-eye" />
+            <circle cx="70" cy="40" r="4.5" class="bv-eye" />
+            <circle cx="51" cy="39" r="1.6" class="bv-glint" />
+            <circle cx="71" cy="39" r="1.6" class="bv-glint" />
+            <ellipse cx="60" cy="48" rx="5" ry="3.5" class="bv-nose" />
+            <rect x="56" y="53" width="8" height="11" rx="2" class="bv-teeth" />
+            <line x1="60" y1="53" x2="60" y2="64" class="bv-teeth-line" />
+          </g>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">BeaverSpotter</span>
+        <span class="brand-sub">UK Beaver Hotspot Map</span>
+      </div>
+    </div>
+
+    <form id="searchForm" class="search-wrap" autocomplete="off">
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="Search a place, e.g. Devon, Tay, Kent…"
+        aria-label="Search location"
+      />
+      <button type="submit" class="search-btn" aria-label="Search">🔍</button>
+      <ul id="suggestions" class="suggestions"></ul>
+    </form>
+
+    <div class="stats-mini">
+      <div class="stat">
+        <span class="stat-num" id="statBeavers">0</span>
+        <span class="stat-label">beavers</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" id="statSites">0</span>
+        <span class="stat-label">hotspots</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" id="statDams">0</span>
+        <span class="stat-label">dams</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Map + side panel ===== -->
+  <main id="layout">
+    <div id="map"></div>
+
+    <aside id="panel" class="panel">
+      <button id="panelClose" class="panel-close" aria-label="Close">×</button>
+      <div id="panelContent">
+        <div class="panel-empty">
+          <div class="logo-beaver mini-logo floaty" aria-hidden="true">
+            <svg viewBox="0 0 120 120" class="beaver-svg">
+              <g class="bv-body">
+                <ellipse cx="60" cy="78" rx="34" ry="28" class="bv-fur" />
+                <ellipse cx="60" cy="84" rx="22" ry="18" class="bv-belly" />
+                <ellipse cx="60" cy="112" rx="16" ry="9" class="bv-tail" />
+                <circle cx="60" cy="44" r="26" class="bv-fur" />
+                <circle cx="60" cy="50" r="16" class="bv-snout" />
+                <circle cx="42" cy="24" r="8" class="bv-fur bv-ear" />
+                <circle cx="78" cy="24" r="8" class="bv-fur bv-ear" />
+                <circle cx="50" cy="40" r="4.5" class="bv-eye" />
+                <circle cx="70" cy="40" r="4.5" class="bv-eye" />
+                <circle cx="51" cy="39" r="1.6" class="bv-glint" />
+                <circle cx="71" cy="39" r="1.6" class="bv-glint" />
+                <ellipse cx="60" cy="48" rx="5" ry="3.5" class="bv-nose" />
+                <rect x="56" y="53" width="8" height="11" rx="2" class="bv-teeth" />
+                <line x1="60" y1="53" x2="60" y2="64" class="bv-teeth-line" />
+              </g>
+            </svg>
+          </div>
+          <h2>Find a beaver near you</h2>
+          <p>
+            Click any glowing hotspot on the map, or search for a place, to see
+            how many beavers live there, how many dams they've built, and your
+            best chance of spotting one.
+          </p>
+          <ul class="legend">
+            <li><span class="dot dot-wild"></span> Wild / free-living population</li>
+            <li><span class="dot dot-enclosed"></span> Enclosed project site</li>
+            <li><span class="heat-swatch"></span> Heatmap = beaver density</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Floating control hint -->
+  <div id="controlHint" class="control-hint">
+    <span>＋ / －</span> zoom &nbsp;·&nbsp; drag to pan &nbsp;·&nbsp; 🦫 click a hotspot
+  </div>
+
+  <!-- Leaflet + heat plugin -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
